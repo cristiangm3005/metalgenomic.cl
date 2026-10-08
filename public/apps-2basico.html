@@ -123,7 +123,7 @@
       background: var(--surface); border: 1px solid var(--line); border-left: 6px solid var(--c);
       border-radius: 16px; padding: 16px; box-shadow: var(--shadow); transition: transform .15s ease;
     }
-    .menu a:hover { transform: translateY(-3px); }
+    @media (hover: hover) { .menu a:hover { transform: translateY(-3px); } }
     .menu a.m2 { --c: var(--c2); --soft: var(--c2-soft); }
     .menu a.m3 { --c: var(--c3); --soft: var(--c3-soft); }
     .menu .ico { flex: none; width: 52px; height: 52px; border-radius: 14px; background: var(--soft); display: grid; place-items: center; font-size: 1.7rem; }
@@ -156,7 +156,7 @@
       border: 0; border-radius: 12px; padding: 12px 20px; font-weight: 800; font-size: 1.05rem;
       background: var(--c); color: var(--surface); transition: transform .12s ease, filter .12s ease;
     }
-    .btn:hover { transform: translateY(-2px); filter: brightness(1.08); }
+    @media (hover: hover) { .btn:hover { transform: translateY(-2px); filter: brightness(1.08); } }
     .btn:disabled { opacity: .5; cursor: not-allowed; transform: none; }
     .btn.big { font-size: 1.25rem; padding: 16px 28px; border-radius: 14px; }
     .ghost {
@@ -273,7 +273,7 @@
     /* ---------- Juego 3 ---------- */
     .start-card { max-width: 480px; margin: 0 auto; text-align: center; display: grid; gap: 14px; }
     .start-card .big-ico { font-size: 4rem; line-height: 1; }
-    .start-card input { font: inherit; font-size: 1.2rem; padding: 12px 14px; border-radius: 12px; border: 2px solid var(--line); background: var(--surface); color: var(--ink); text-align: center; }
+    .start-card input { width: 100%; min-width: 0; font: inherit; font-size: 1.2rem; padding: 12px 14px; border-radius: 12px; border: 2px solid var(--line); background: var(--surface); color: var(--ink); text-align: center; }
     .progress { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
     .progress .bar i { background: var(--c); }
     .streak { font-weight: 800; color: var(--c2); white-space: nowrap; }
@@ -294,7 +294,43 @@
 
     footer { text-align: center; color: var(--muted); font-size: .9rem; padding: 8px 0 40px; }
 
+    .report-title { font-size: clamp(1.4rem, 4.5vw, 2rem); }
+    .stat b { font-size: clamp(1.4rem, 4vw, 2rem); }
+
+    /* Tablet (iPad vertical y horizontal) */
+    @media (min-width: 721px) and (max-width: 1199px) {
+      .hero h1 { font-size: clamp(2.4rem, 5.5vw, 3.2rem); }
+      .ans { min-height: 96px; }
+      .pick { width: 52px; height: 52px; }
+      .tile { min-height: 64px; }
+      .wheel-box { --size: min(360px, 42vw); }
+    }
+    @media (min-width: 721px) and (max-width: 900px) {
+      .menu { grid-template-columns: 1fr; max-width: 520px; margin-inline: auto; }
+      .wheel-area { grid-template-columns: 1fr; }
+      .wheel-box { --size: min(400px, 70vw); }
+      .bins { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    }
+    /* Computador grande */
+    @media (min-width: 1200px) {
+      .stage { padding: 32px; }
+      .wheel-box { --size: 380px; }
+    }
+
+    /* Celular */
     @media (max-width: 720px) {
+      nav.top .brand { display: none; }
+      nav.top .wrap { justify-content: center; }
+      nav.top a { padding: 6px 10px; font-size: .85rem; }
+      header.hero { padding: 28px 0 12px; }
+      .lead { font-size: 1rem; }
+      section.game { margin: 24px 0; border-radius: 18px; }
+      .stage { padding: 14px; border-radius: 14px; }
+      .story { padding: 16px; }
+      .story p { font-size: 1.08rem; }
+      .g1-head .timer { order: 3; flex-basis: 100%; max-width: none; }
+      .report-top { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      th, td { padding: 8px 6px; font-size: .9rem; }
       .wheel-area { grid-template-columns: 1fr; }
       .bins { grid-template-columns: 1fr; }
       .bin { min-height: 110px; }
@@ -304,6 +340,12 @@
       section.game { padding: 16px; }
     }
     @media (max-width: 460px) {
+      nav.top .lbl { display: none; }
+      nav.top a { font-size: 1.2rem; padding: 4px 16px; }
+      .tabs button { flex: 1 1 auto; padding: 8px 10px; }
+      .report td:first-child, .report th:first-child { display: none; }
+      .report th { font-size: .68rem; letter-spacing: 0; }
+      .report th, .report td { padding: 7px 4px; }
       .answers { grid-template-columns: 1fr; }
       .ans { min-height: 64px; }
     }
@@ -316,9 +358,9 @@
   <nav class="top" aria-label="Juegos">
     <div class="wrap">
       <span class="brand">Aprendemos Jugando</span>
-      <a href="#juego1">1 · ¡Responde Ya!</a>
-      <a href="#juego2">2 · Palabras en Juego</a>
-      <a href="#juego3">3 · Misión Cálculo</a>
+      <a href="#juego1"><span aria-hidden="true">⚡</span> <span class="lbl">¡Responde Ya!</span></a>
+      <a href="#juego2"><span aria-hidden="true">🎡</span> <span class="lbl">Palabras en Juego</span></a>
+      <a href="#juego3"><span aria-hidden="true">🚀</span> <span class="lbl">Misión Cálculo</span></a>
     </div>
   </nav>
 
@@ -470,6 +512,7 @@
 
     // Fullscreen
     $$(".fs").forEach(function (b) {
+      if (!document.fullscreenEnabled) { b.hidden = true; return; }
       b.addEventListener("click", function () {
         var sec = document.getElementById(b.dataset.target);
         if (document.fullscreenElement) { document.exitFullscreen(); }
@@ -987,7 +1030,7 @@
 
       g3.root.innerHTML =
         '<div class="report"><div class="center"><div class="stars" aria-label="' + stars + ' de 3 estrellas">' + "⭐".repeat(stars) + '<span style="opacity:.25">' + "⭐".repeat(3 - stars) + "</span></div>" +
-          '<div class="display" style="font-size:2rem">' + esc(g3.name) + ", " + msg + "</div></div>" +
+          '<div class="display report-title">' + esc(g3.name) + ", " + msg + "</div></div>" +
           '<div class="report-top">' +
             '<div class="stat"><b>' + good + "/" + s.answers.length + "</b><span>respuestas correctas</span></div>" +
             '<div class="stat"><b>' + time + "</b><span>tiempo total</span></div>" +
