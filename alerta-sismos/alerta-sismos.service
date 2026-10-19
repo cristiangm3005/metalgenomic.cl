@@ -1,0 +1,19 @@
+# Servicio systemd para dejar la alerta corriendo siempre (Linux / Raspberry Pi).
+# 1. Ajusta User y las rutas de abajo.
+# 2. sudo cp alerta-sismos.service /etc/systemd/system/
+# 3. sudo systemctl daemon-reload && sudo systemctl enable --now alerta-sismos
+# 4. Ver el log: journalctl -u alerta-sismos -f
+[Unit]
+Description=Alerta de sismos (USGS + EMSC)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=pi
+WorkingDirectory=/home/pi/alerta-sismos
+ExecStart=/usr/bin/python3 /home/pi/alerta-sismos/alerta_sismos.py
+Restart=always
+RestartSec=30
+
+[Install]
+WantedBy=multi-user.target
