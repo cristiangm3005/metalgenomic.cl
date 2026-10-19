@@ -163,3 +163,50 @@ class TestSismoRT(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestReferencias(unittest.TestCase):
+    def test_mmi_openquake(self):
+        # AllenEtAl2012Rhypo (OpenQuake). Profundidad 0 => distancia hipocentral = epicentral.
+        self.assertAlmostEqual(s.mmi_estimada(7.0, 50, 0), 6.537, delta=0.005)
+        self.assertAlmostEqual(s.mmi_estimada(7.0, 200, 0), 4.757, delta=0.005)
+        self.assertAlmostEqual(s.mmi_estimada(5.0, 10, 0), 5.974, delta=0.005)
+
+
+class TestGlobalQuake(unittest.TestCase):
+    """Servidor falso con la misma respuesta que GlobalQuake Server 0.11 (FDSNWS-event)."""
+
+    def test_fdsnws(self):
+        geo = {"type": "FeatureCollection", "features": [{
+            "type": "Feature", "id": "uuid-1",
+            "properties": {"magtype": "gqm", "evtype": "earthquake", "lon": -70.9, "auth": "GlobalQuake",
+                           "lat": -27.5, "depth": 32.5, "unid": "uuid-1", "mag": 5.6,
+                           "time": AHORA.strftime("%Y-%m-%dT%H:%M:%S.000Z"), "flynn_region": "Atacama, Chile"},
+            "geometry": {"type": "Point", "coordinates": [-70.9, -27.5, -32.5]}}]}
+        rutas = []
+
+        class H(BaseHTTPRequestHandler):
+            def do_GET(self):
+                rutas.append(self.path)
+                cuerpo = json.dumps(geo).encode()
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self.send_header("Content-Length", str(len(cuerpo)))
+                self.end_headers()
+                self.wfile.write(cuerpo)
+
+            def log_message(self, *a):
+                pass
+
+        srv = ThreadingHTTPServer(("127.0.0.1", 0), H)
+        threading.Thread(target=srv.serve_forever, daemon=True).start()
+        try:
+            with tempfile.TemporaryDirectory() as d, mock.patch.dict("os.environ", {"NO_PROXY": "127.0.0.1"}):
+                c = cfg(d, gq_url=f"http://127.0.0.1:{srv.server_address[1]}")
+                sismos = s.consultar_gq(c, AHORA - timedelta(minutes=30))
+                texto = s.procesar(sismos[0], c, s.Memoria(c.estado), 30)
+        finally:
+            srv.shutdown()
+        self.assertTrue(rutas[0].startswith("/fdsnws/event/1/query?format=geojson"))
+        self.assertIn("nivel=ALERTA", texto)
+        self.assertIn("fuentes=globalquake SIN_CONFIRMAR", texto)

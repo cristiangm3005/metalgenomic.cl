@@ -1,6 +1,6 @@
 ---
 name: sismos
-description: Vigila sismos y temblores cerca de la ubicación del usuario (por defecto Copiapó, Chile) usando USGS, EMSC y, si está configurado, el backend sismo-rt con GlobalQuake, y avisa en la conversación apenas se detecta uno. Úsala cuando el usuario diga "avísame si tiembla", "vigila los sismos", "¿hubo temblores cerca?", "¿tembló?", "último sismo", "GlobalQuake", "alerta sísmica" o pregunte por terremotos recientes o en curso.
+description: Vigila sismos y temblores cerca de la ubicación del usuario (por defecto Copiapó, Chile) usando USGS, EMSC y, si está configurado, GlobalQuake Server o el backend sismo-rt, y avisa en la conversación (y con notificación push) apenas se detecta uno. Úsala cuando el usuario diga "avísame si tiembla", "vigila los sismos", "¿hubo temblores cerca?", "¿tembló?", "último sismo", "GlobalQuake", "alerta sísmica" o pregunte por terremotos recientes o en curso.
 ---
 
 # Vigilancia de sismos
@@ -13,7 +13,7 @@ para la ubicación del usuario la distancia, la dirección y la **intensidad est
 Ningún sistema puede **predecir** terremotos, ni siquiera GlobalQuake. Lo que sí hace esta skill es avisar
 lo antes posible cuando un sismo **ya fue detectado**. Si el usuario pide "avísame cuando va a temblar",
 díselo en una frase y ofrece la vigilancia. Con USGS y EMSC el aviso llega entre 1 y 20 minutos después
-del sismo. Solo con GlobalQuake (vía sismo-rt) puede llegar en segundos. Para emergencias, la fuente
+del sismo. Solo con GlobalQuake puede llegar en segundos. Para emergencias, la fuente
 oficial en Chile es el SAE de SENAPRED y el CSN (sismologia.cl).
 
 ## Ubicación y umbrales
@@ -23,12 +23,14 @@ Si el usuario menciona otra ciudad o coordenadas, pásalas con `--lat --lon --lu
 que conozcas de la ciudad). También se pueden fijar con las variables `SISMOS_LAT`, `SISMOS_LON`,
 `SISMOS_LUGAR`, `SISMOS_RADIO_KM`, `SISMOS_MAG_GLOBAL`, `SISMOS_MAG_MIN`.
 
-La ruta del script es relativa a esta skill: `.claude/skills/sismos/scripts/sismos.py`.
+En los comandos de abajo, `SKILL_DIR` es el directorio base de esta skill (aparece al cargarla):
+`~/.claude/skills/sismos` si está instalada para el usuario, o `.claude/skills/sismos` dentro de un
+proyecto. Reemplázalo por la ruta real.
 
 ## Pregunta puntual: "¿hubo temblores?"
 
 ```bash
-python3 .claude/skills/sismos/scripts/sismos.py ahora --horas 24
+python3 SKILL_DIR/scripts/sismos.py ahora --horas 24
 ```
 
 Usa `--json` si necesitas procesar los datos. Resume para el usuario: los sismos más relevantes
@@ -39,7 +41,7 @@ falló. Con código de salida 2 fallaron las dos fuentes: no digas "no hubo sism
 ## Vigilancia continua: "avísame si tiembla"
 
 1. Arranca el monitor con el tool **Monitor** (no con Bash):
-   - `command`: `python3 -u .claude/skills/sismos/scripts/sismos.py vigilar` (más `--lat/--lon/--lugar`
+   - `command`: `python3 -u SKILL_DIR/scripts/sismos.py vigilar` (más `--lat/--lon/--lugar`
      si corresponde)
    - `description`: `sismos cerca de <lugar>`
    - `timeout_ms`: `1800000` (máximo)
@@ -47,12 +49,16 @@ falló. Con código de salida 2 fallaron las dos fuentes: no digas "no hubo sism
    retraso de las fuentes.
 3. Cada línea del monitor es un evento:
    - `VIGILANDO ...` → arranque correcto, no hace falta decir nada más.
-   - `SISMO nivel=ALERTA ...` → **avisa de inmediato** al usuario, primero lo esencial: magnitud,
+   - `SISMO nivel=ALERTA ...` → envía primero una notificación con el tool **PushNotification**
+     (`status: "proactive"`, una línea de menos de 200 caracteres, p. ej.
+     `Sismo M5.4 a 42 km al O de Copiapó, intensidad V. Hora 18:03`). Si el tool no está cargado,
+     cárgalo con ToolSearch (`select:PushNotification`). Luego **avisa en el chat** de inmediato, primero lo esencial: magnitud,
      distancia, intensidad estimada y hora. Si la intensidad es V o mayor, añade en 2-3 líneas las
      medidas de autoprotección (agacharse, cubrirse y afirmarse; alejarse de ventanas; si estás en
      la costa y el movimiento fue fuerte o largo, evacuar a zona alta sin esperar la alerta oficial)
      y que revise SENAPRED y el SHOA.
-   - `SISMO nivel=INFO ...` → avísale de forma breve (sismo lejano o débil en su ubicación).
+   - `SISMO nivel=INFO ...` → avísale de forma breve en el chat (sismo lejano o débil en su ubicación).
+     Envía PushNotification solo si la magnitud es 6.0 o más.
    - Si la línea dice `(actualización)` → se corrigió la magnitud o subió el nivel. Avisa el cambio.
    - Si la línea incluye `SIN_CONFIRMAR` → detección preliminar (GlobalQuake). Dilo así.
    - `ESTADO fuente=X CAIDA` → avisa que esa fuente no responde y que la vigilancia puede no ver sismos.
@@ -63,22 +69,25 @@ falló. Con código de salida 2 fallaron las dos fuentes: no digas "no hubo sism
 5. Si el usuario pide parar, detén el monitor con TaskStop.
 
 Para probar que el aviso funciona sin esperar un sismo real:
-`python3 .claude/skills/sismos/scripts/sismos.py prueba` imprime un sismo ficticio con el mismo formato.
+`python3 SKILL_DIR/scripts/sismos.py prueba` imprime un sismo ficticio con el mismo formato.
 
-## GlobalQuake (tiempo real)
+## GlobalQuake (detección en segundos)
 
-GlobalQuake no publica una API. Para usar sus detecciones:
+El código abierto de GlobalQuake está descontinuado desde la 1.0.0 (sigue en globalquake.net como
+proyecto propietario). **GlobalQuake Server 0.11** trae una API FDSNWS-event, apagada por defecto:
 
-1. Corre el backend `sismo-rt/` de este repo (`uvicorn app.main:app`). Ya recibe en tiempo real el
-   WebSocket de EMSC.
-2. Conecta GlobalQuake con el hook de `sismo-rt/docs/GLOBALQUAKE.md`. Es un fork que hace POST a
-   `/api/ingest`.
-3. Exporta `SISMOS_RT_URL=http://localhost:8000` (o pasa `--rt-url`). El vigilante escucha el flujo SSE
-   de sismo-rt y, si se cae, vuelve solo a consultar USGS/EMSC.
+1. En sus settings: `autoStartFDSNWSEventServer=true` (puerto `FDSNWSEventPort`, por defecto 8080).
+2. Exporta `SISMOS_GQ_URL=http://localhost:8080` (o pasa `--gq-url`). El vigilante lo consulta cada 5 s
+   y además sigue consultando USGS/EMSC. Sus sismos aparecen como `fuentes=globalquake SIN_CONFIRMAR`
+   hasta que un catálogo los confirma. GlobalQuake es experimental: dilo al avisar.
+
+Alternativa: el backend `sismo-rt/` de este repo (WebSocket de EMSC en tiempo real + GlobalQuake) con
+`SISMOS_RT_URL=http://localhost:8000` (o `--rt-url`). El vigilante escucha su flujo SSE y, si se cae,
+vuelve solo a consultar USGS/EMSC. Detalles en `sismo-rt/docs/GLOBALQUAKE.md`.
 
 ## Red necesaria
 
-Hosts: `earthquake.usgs.gov` y `www.seismicportal.eu` (y el de sismo-rt si se usa). Si ambos fallan
+Hosts: `earthquake.usgs.gov` y `www.seismicportal.eu` (y los de GlobalQuake o sismo-rt si se usan). Si ambos fallan
 con 403 o un error de túnel en una sesión en la nube, la política de red del entorno los está
 bloqueando. Díselo al usuario y que los permita en la configuración del entorno, o que use la skill
 desde Claude Code en su computador.

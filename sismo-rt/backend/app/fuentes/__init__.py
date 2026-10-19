@@ -3,8 +3,9 @@
 - `EmscWebSocket`: canal principal, push en tiempo real (sin polling).
 - `UsgsPoller`: respaldo y confirmación independiente vía la API REST/GeoJSON de USGS.
 - `EmscRestFallback`: polling a EMSC que se activa solo si el WebSocket está caído.
+- `GlobalQuakeFdsnws`: polling rápido al servidor FDSNWS-event de GlobalQuake Server 0.11.
 
-Los reportes de GlobalQuake (u otro detector propio) entran por `POST /api/ingest`.
+Otros detectores propios pueden enviar reportes por `POST /api/ingest`.
 """
 
 from __future__ import annotations
@@ -185,6 +186,31 @@ class EmscRestFallback(Poller):
         return parsers.emsc_coleccion(r.json())
 
 
+class GlobalQuakeFdsnws(Poller):
+    """Servidor FDSNWS-event incluido en GlobalQuake Server 0.11 (autoStartFDSNWSEventServer=true).
+
+    No implementa búsqueda por radio ni `orderby`, así que se piden los sismos recientes y el bus
+    filtra por cliente. Responde 204 cuando no hay sismos.
+    """
+
+    nombre = "globalquake"
+
+    def __init__(self, cfg: Config, bus: Bus, cliente: httpx.AsyncClient | None = None):
+        super().__init__(cfg, bus, cliente)
+        self.intervalo_s = cfg.globalquake_intervalo_s
+
+    async def consultar(self, cliente: httpx.AsyncClient) -> list:
+        desde = datetime.now(timezone.utc) - timedelta(hours=1)
+        r = await cliente.get(f"{self.cfg.globalquake_url}/fdsnws/event/1/query", params={
+            "format": "geojson",
+            "starttime": desde.strftime("%Y-%m-%dT%H:%M:%S"),
+        })
+        if r.status_code == 204:
+            return []
+        r.raise_for_status()
+        return parsers.emsc_coleccion(r.json(), fuente="globalquake")
+
+
 def crear_fuentes(cfg: Config, bus: Bus) -> list[Fuente]:
     fuentes: list[Fuente] = []
     ws = None
@@ -195,6 +221,8 @@ def crear_fuentes(cfg: Config, bus: Bus) -> list[Fuente]:
         fuentes.append(UsgsPoller(cfg, bus))
     if "emsc_rest" in cfg.fuentes:
         fuentes.append(EmscRestFallback(cfg, bus, ws))
+    if cfg.globalquake_url:
+        fuentes.append(GlobalQuakeFdsnws(cfg, bus))
     desconocidas = set(cfg.fuentes) - {"emsc_ws", "usgs", "emsc_rest"}
     if desconocidas:
         log.warning("Fuentes desconocidas ignoradas: %s", ", ".join(sorted(desconocidas)))

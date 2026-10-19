@@ -5,7 +5,7 @@
 ```mermaid
 flowchart LR
     subgraph Fuentes["Fuentes de datos sísmicos"]
-        GQ["GlobalQuake (fork con hook)<br/>detección propia, segundos"]
+        GQ["GlobalQuake Server 0.11<br/>FDSNWS local (polling 5 s)<br/>o hook en fork"]
         EWS["EMSC WebSocket<br/>standing_order (push)"]
         USGS["USGS GeoJSON feed<br/>polling 30 s"]
         EREST["EMSC FDSN REST<br/>polling solo si cae el WS"]
@@ -25,7 +25,8 @@ flowchart LR
         CEL["Celular<br/>app ntfy (push)"]
     end
 
-    GQ -->|HTTP POST JSON| ING --> BUS
+    GQ -->|GeoJSON / POST| PAR
+    GQ -.hook.-> ING --> BUS
     EWS -->|JSON create/update| PAR
     USGS --> PAR
     EREST -.respaldo.-> PAR
@@ -57,7 +58,7 @@ sequenceDiagram
 | Tema | Decisión | Por qué |
 |---|---|---|
 | Canal principal | WebSocket de EMSC (*standing order*) | Es el único canal **push** público y global; evita el polling. |
-| GlobalQuake | Endpoint `POST /api/ingest` + hook en un fork | GlobalQuake no publica API: su protocolo cliente-servidor es propio y no documentado. Un hook HTTP en el fork (licencia MIT) es lo más robusto. Ver [GLOBALQUAKE.md](GLOBALQUAKE.md). |
+| GlobalQuake | Su servidor FDSNWS-event (GlobalQuake Server 0.11) consultado cada 5 s; opcionalmente un hook en un fork que hace `POST /api/ingest` | El protocolo cliente-servidor de GlobalQuake es propio, pero el servidor incluye una API FDSNWS estándar (apagada por defecto). El repositorio abierto está descontinuado desde la 1.0.0. Ver [GLOBALQUAKE.md](GLOBALQUAKE.md). |
 | Respaldo | USGS siempre (confirma) + EMSC REST solo si el WS lleva caído > 20 s | Dos catálogos independientes; no se duplica tráfico cuando el WS funciona. |
 | Fusión | Mismo sismo si \|Δt\| ≤ 90 s y distancia ≤ 150 km | Las fuentes usan IDs distintos y localizaciones preliminares que difieren. El valor "oficial" sale de la fuente de mayor prioridad: USGS > EMSC > GlobalQuake. |
 | Personalización | Se calcula **en el servidor por cliente** | El cliente envía su GPS; recibe distancia, intensidad y nivel ya calculados. Cálculo O(clientes) por sismo, barato. |
@@ -71,8 +72,12 @@ sequenceDiagram
 - **Distancia epicentral**: Haversine sobre una esfera de radio 6371 km.
 - **Distancia hipocentral**: `√(epicentral² + profundidad²)`.
 - **Intensidad (MMI)**: ecuación de predicción de Allen, Wald & Worden (2012) para regiones
-  corticales activas, con distancia hipocentral.
-- **PGA**: inversión de la relación MMI–PGA de Worden et al. (2012).
+  corticales activas, con distancia hipocentral:
+  `MMI = 2.085 + 1.428·M − 1.402·ln√(R² + (−0.209 + 2.042·e^(M−5))²) + 0.078·ln(R/50)` (el último término
+  solo si R > 50 km). Coeficientes verificados contra `AllenEtAl2012Rhypo` de OpenQuake.
+- **PGA**: inversión de la relación MMI–PGA de Worden et al. (2012): `MMI = 1.78 + 1.55·log10(PGA)` si
+  MMI ≤ 4.22, si no `MMI = −1.60 + 3.70·log10(PGA)`, con PGA en cm/s². Verificado contra `wgrw12` de
+  USGS ShakeMap (`esi-shakelib`).
 - **Ondas P y S**: velocidades medias constantes (Vp = 6.5 km/s, Vs = 3.75 km/s, configurables).
   Es una aproximación de trayectoria recta: buena hasta algunos cientos de km.
 - **Nivel**:
@@ -85,7 +90,8 @@ sequenceDiagram
 1. **Los catálogos no son alerta temprana.** EMSC y USGS publican un sismo entre ~1 y 20 minutos
    después del origen. Para un sismo cercano, la onda S ya habrá pasado; el contador solo tiene
    sentido con detecciones de segundos (GlobalQuake) o para sismos lejanos.
-2. **GlobalQuake es experimental**; sus autores advierten que puede dar información errónea.
+2. **GlobalQuake es experimental**; sus autores advierten que puede dar información errónea y que los
+   M6+ suelen producir detecciones falsas o duplicadas. Además, el código abierto está descontinuado.
    Por eso sus eventos llegan marcados `confirmado: false` hasta que un catálogo los confirma.
 3. **La atenuación de Allen 2012 está calibrada para corteza activa.** En la subducción chilena
    (sismos interplaca e intraplaca profundos) es una aproximación; úsala como orden de magnitud.

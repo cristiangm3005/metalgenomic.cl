@@ -53,19 +53,24 @@ def mmi_allen2012(mag: float, r_hipo_km: float) -> float:
 
     Ecuación de predicción de intensidad de Allen, Wald & Worden (2012),
     "Intensity attenuation for active crustal regions", J. Seismol. 16:409-433,
-    versión con distancia hipocentral. Devuelve un valor continuo acotado a [1, 10].
+    versión con distancia hipocentral (coeficientes verificados contra
+    openquake.hazardlib.gsim.allen_2012_ipe.AllenEtAl2012Rhypo).
+    Devuelve un valor continuo acotado a [1, 10].
     """
-    c0, c1, c2, c3, c4 = 2.085, 1.428, -1.402, 0.078, -0.209
-    r = math.sqrt(r_hipo_km**2 + (1 + c3 * math.exp(mag - 5)) ** 2)
-    mmi = c0 + c1 * mag + c2 * math.log(r)
-    if r_hipo_km > 50:
+    c0, c1, c2, c4, m1, m2 = 2.085, 1.428, -1.402, 0.078, -0.209, 2.042
+    r_m = m1 + m2 * math.exp(mag - 5)
+    mmi = c0 + c1 * mag + c2 * math.log(math.sqrt(r_hipo_km**2 + r_m**2))
+    if r_hipo_km > 50:  # término anelástico
         mmi += c4 * math.log(r_hipo_km / 50)
     return min(10.0, max(1.0, mmi))
 
 
 def pga_desde_mmi(mmi: float) -> float:
-    """PGA aproximada (en g) invirtiendo la relación MMI-PGA de Worden et al. (2012), BSSA 102(1)."""
-    if mmi <= 1.78 + 1.55 * 1.57:  # tramo de baja intensidad (log10 PGA <= 1.57)
+    """PGA aproximada (en g) invirtiendo la relación MMI-PGA de Worden et al. (2012), BSSA 102(1).
+
+    Coeficientes verificados contra esi_shakelib.gmice.wgrw12 (USGS ShakeMap).
+    """
+    if mmi <= 4.22:  # tramo de baja intensidad (log10 PGA <= 1.57)
         log_pga = (mmi - 1.78) / 1.55
     else:
         log_pga = (mmi + 1.60) / 3.70

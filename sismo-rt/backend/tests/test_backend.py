@@ -270,3 +270,50 @@ async def test_emsc_websocket_contra_servidor_local():
         tarea.cancel()
         await asyncio.gather(tarea, return_exceptions=True)
     assert list(bus.eventos) == ["emsc:w1"]
+
+
+def test_mmi_valores_de_referencia_openquake():
+    # AllenEtAl2012Rhypo: c0 + c1·M + c2·ln(√(R² + (m1 + m2·e^(M-5))²)) [+ c4·ln(R/50) si R > 50]
+    assert sis.mmi_allen2012(7.0, 50) == pytest.approx(6.537, abs=0.005)
+    assert sis.mmi_allen2012(7.0, 200) == pytest.approx(4.757, abs=0.005)
+    assert sis.mmi_allen2012(5.0, 10) == pytest.approx(5.974, abs=0.005)
+
+
+def test_pga_valores_de_referencia_worden2012():
+    # MMI = 1.78 + 1.55·log10(PGA cm/s²) y MMI = -1.60 + 3.70·log10(PGA) (esi_shakelib wgrw12)
+    assert sis.pga_desde_mmi(1.78 + 1.55 * 1.0) * 980.665 == pytest.approx(10, rel=1e-6)
+    assert sis.pga_desde_mmi(-1.60 + 3.70 * 2.0) * 980.665 == pytest.approx(100, rel=1e-6)
+
+
+# Respuesta real de GlobalQuake Server 0.11 (ArchivedQuake.getGeoJSON en la rama 0.11.0).
+GQ_GEOJSON = {"type": "FeatureCollection", "features": [{
+    "type": "Feature", "id": "6f1c2b9a-0000-4000-8000-000000000001",
+    "properties": {"lastupdate": 1792444000000, "magtype": "gqm", "evtype": "earthquake", "lon": -70.9,
+                   "auth": "GlobalQuake", "lat": -27.5, "depth": 32.5,
+                   "unid": "6f1c2b9a-0000-4000-8000-000000000001", "mag": 5.6,
+                   "time": AHORA.strftime("%Y-%m-%dT%H:%M:%S.000Z"),
+                   "source_id": "GlobalQuake_6f1c2b9a-0000-4000-8000-000000000001",
+                   "source_catalog": "GlobalQuake", "flynn_region": "Atacama, Chile"},
+    "geometry": {"type": "Point", "coordinates": [-70.9, -27.5, -32.5]}}]}
+
+
+async def test_globalquake_fdsnws():
+    from app.fuentes import GlobalQuakeFdsnws
+
+    pedidas = []
+
+    def responder(req):
+        pedidas.append(req.url)
+        return httpx.Response(200, json=GQ_GEOJSON)
+
+    c = cfg(globalquake_url="http://gq:8080", globalquake_intervalo_s=0.01)
+    bus = Bus(c)
+    cliente = httpx.AsyncClient(transport=httpx.MockTransport(responder))
+    tarea = asyncio.create_task(GlobalQuakeFdsnws(c, bus, cliente).correr())
+    await asyncio.sleep(0.1)
+    tarea.cancel()
+    await asyncio.gather(tarea, return_exceptions=True)
+    await cliente.aclose()
+    ev = bus.eventos["globalquake:6f1c2b9a-0000-4000-8000-000000000001"]
+    assert ev.principal.prof_km == 32.5 and not ev.confirmado
+    assert pedidas[0].path == "/fdsnws/event/1/query" and pedidas[0].params["format"] == "geojson"

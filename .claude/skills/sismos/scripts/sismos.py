@@ -11,7 +11,9 @@ Fuentes:
   - Si defines SISMOS_RT_URL (backend sismo-rt de este repo), escucha su flujo SSE en
     tiempo real, que incluye el WebSocket de EMSC y las detecciones de GlobalQuake
     enviadas a /api/ingest. Si ese flujo se cae, pasa automáticamente al polling.
-  - Si no, consulta cada 30 s los catálogos públicos de USGS y EMSC.
+  - Si defines SISMOS_GQ_URL (p. ej. http://localhost:8080), consulta cada pocos segundos el
+    servidor FDSNWS-event que trae GlobalQuake Server 0.11 (detecciones propias, en segundos).
+  - Además consulta cada 30 s los catálogos públicos de USGS y EMSC.
 
 Solo usa la biblioteca estándar de Python (3.9+).
 """
@@ -62,12 +64,13 @@ def rumbo(lat1, lon1, lat2, lon2) -> str:
 
 
 def mmi_estimada(mag: float, dist_km: float, prof_km: float | None) -> float:
-    """Intensidad de Mercalli en tu ubicación (Allen, Wald & Worden 2012, distancia hipocentral)."""
+    """Intensidad de Mercalli en tu ubicación: Allen, Wald & Worden (2012), versión con distancia
+    hipocentral (coeficientes de openquake.hazardlib.gsim.allen_2012_ipe.AllenEtAl2012Rhypo)."""
     r_hipo = math.hypot(dist_km, max(prof_km or 0.0, 0.0))
-    r = math.sqrt(r_hipo**2 + (1 + 0.078 * math.exp(mag - 5)) ** 2)
-    mmi = 2.085 + 1.428 * mag - 1.402 * math.log(r)
-    if r_hipo > 50:
-        mmi -= 0.209 * math.log(r_hipo / 50)
+    r_m = -0.209 + 2.042 * math.exp(mag - 5)
+    mmi = 2.085 + 1.428 * mag - 1.402 * math.log(math.sqrt(r_hipo**2 + r_m**2))
+    if r_hipo > 50:  # término anelástico
+        mmi += 0.078 * math.log(r_hipo / 50)
     return min(10.0, max(1.0, mmi))
 
 
@@ -84,6 +87,8 @@ class Config:
     intervalo_s: float
     rt_url: str
     estado: Path
+    gq_url: str = ""
+    gq_intervalo_s: float = 5.0
 
 
 @dataclass
@@ -130,7 +135,8 @@ def parse_usgs(datos: dict) -> list[Sismo]:
     return res
 
 
-def parse_emsc(datos: dict) -> list[Sismo]:
+def parse_emsc(datos: dict, fuente: str = "emsc") -> list[Sismo]:
+    """GeoJSON estilo EMSC. GlobalQuake Server usa el mismo formato en su FDSNWS (format=geojson)."""
     res = []
     for f in datos.get("features", []):
         p = f.get("properties") or {}
@@ -140,10 +146,11 @@ def parse_emsc(datos: dict) -> list[Sismo]:
             continue
         unid = str(p.get("unid") or f.get("id") or "")
         prof = p.get("depth")
-        res.append(Sismo("emsc", unid, _iso(p["time"]), float(p["lat"]), float(p["lon"]),
+        url = f"https://www.seismicportal.eu/eventdetails.html?unid={unid}" if fuente == "emsc" else ""
+        res.append(Sismo(fuente, unid, _iso(p["time"]), float(p["lat"]), float(p["lon"]),
                          abs(float(prof)) if prof is not None else None, float(p["mag"]),
-                         (p.get("flynn_region") or "").title(),
-                         f"https://www.seismicportal.eu/eventdetails.html?unid={unid}", {"emsc"}))
+                         (p.get("flynn_region") or "").title(), url, {fuente},
+                         confirmado=fuente != "globalquake"))
     return res
 
 
@@ -162,6 +169,18 @@ def get_json(url: str, params: dict, timeout: float = 20) -> dict:
     with urllib.request.urlopen(req, timeout=timeout) as r:
         cuerpo = r.read() if r.status != 204 else b""
     return json.loads(cuerpo) if cuerpo.strip() else {"features": []}
+
+
+def consultar_gq(cfg: Config, desde: datetime) -> list[Sismo]:
+    """Servidor FDSNWS-event de GlobalQuake Server (Settings: autoStartFDSNWSEventServer=true, puerto 8080).
+
+    Ese servidor no implementa búsqueda por radio, así que se piden todos y se filtra aquí.
+    Responde 204 (sin contenido) cuando no hay sismos.
+    """
+    datos = get_json(f"{cfg.gq_url.rstrip('/')}/fdsnws/event/1/query",
+                     {"format": "geojson", "starttime": desde.strftime("%Y-%m-%dT%H:%M:%S"),
+                      "minmag": cfg.mag_min}, timeout=10)
+    return parse_emsc(datos, fuente="globalquake")
 
 
 def consultar(cfg: Config, desde: datetime) -> tuple[list[Sismo], list[str]]:
@@ -191,17 +210,24 @@ def consultar(cfg: Config, desde: datetime) -> tuple[list[Sismo], list[str]]:
                     sismos.append(s)
         except (urllib.error.URLError, TimeoutError, ValueError, KeyError, OSError) as exc:
             errores.append(f"{nombre}: {exc}")
+    if cfg.gq_url:
+        try:
+            sismos.extend(consultar_gq(cfg, desde))
+        except (urllib.error.URLError, TimeoutError, ValueError, KeyError, OSError) as exc:
+            errores.append(f"globalquake: {exc}")
     return fusionar(sismos), errores
 
 
 def fusionar(sismos: list[Sismo]) -> list[Sismo]:
-    """Un mismo sismo reportado por USGS y EMSC (≤90 s y ≤150 km) se une; manda USGS."""
+    """Un mismo sismo de varias fuentes (≤90 s y ≤150 km) se une; manda USGS, luego EMSC, luego GlobalQuake."""
+    orden = {"usgs": 0, "emsc": 1}
     res: list[Sismo] = []
-    for s in sorted(sismos, key=lambda x: (x.fuente != "usgs", x.tiempo)):
+    for s in sorted(sismos, key=lambda x: (orden.get(x.fuente, 2), x.tiempo)):
         igual = next((r for r in res if abs((r.tiempo - s.tiempo).total_seconds()) <= 90
                       and distancia_km(r.lat, r.lon, s.lat, s.lon) <= 150), None)
         if igual:
             igual.fuentes |= s.fuentes
+            igual.confirmado = igual.confirmado or s.confirmado
         else:
             res.append(s)
     return sorted(res, key=lambda x: x.tiempo, reverse=True)
@@ -356,19 +382,31 @@ def vigilar(cfg: Config, max_edad_min: float) -> None:
         threading.Thread(target=escuchar_sse, args=(cfg, memoria, estados, sse_ok, max_edad_min),
                          daemon=True).start()
         time.sleep(3)
+    ultimo_catalogo = 0.0
     while True:
-        # Con el flujo en tiempo real activo no hace falta consultar los catálogos.
-        if not sse_ok.is_set():
-            desde = datetime.now(timezone.utc) - timedelta(minutes=max_edad_min)
-            sismos, errores = consultar(cfg, desde)
+        desde = datetime.now(timezone.utc) - timedelta(minutes=max_edad_min)
+        sismos = []
+        # GlobalQuake local se consulta cada pocos segundos: es la fuente rápida.
+        if cfg.gq_url:
+            try:
+                sismos.extend(consultar_gq(cfg, desde))
+                estados.marcar("globalquake", True)
+            except (urllib.error.URLError, TimeoutError, ValueError, KeyError, OSError) as exc:
+                estados.marcar("globalquake", False, str(exc))
+        # Con el flujo en tiempo real de sismo-rt activo no hace falta consultar los catálogos.
+        if not sse_ok.is_set() and time.monotonic() - ultimo_catalogo >= cfg.intervalo_s:
+            ultimo_catalogo = time.monotonic()
+            sin_gq = Config(**{**cfg.__dict__, "gq_url": ""})
+            catalogo, errores = consultar(sin_gq, desde)
+            sismos.extend(catalogo)
             caidas = {e.split(":", 1)[0] for e in errores}
             for f in ("usgs", "emsc"):
                 estados.marcar(f, f not in caidas, next((e for e in errores if e.startswith(f)), ""))
-            for s in sorted(sismos, key=lambda x: x.tiempo):
-                texto = procesar(s, cfg, memoria, max_edad_min)
-                if texto:
-                    emitir(texto)
-        time.sleep(cfg.intervalo_s)
+        for s in sorted(fusionar(sismos), key=lambda x: x.tiempo):
+            texto = procesar(s, cfg, memoria, max_edad_min)
+            if texto:
+                emitir(texto)
+        time.sleep(min(cfg.gq_intervalo_s, cfg.intervalo_s) if cfg.gq_url else cfg.intervalo_s)
 
 
 def ahora(cfg: Config, horas: float, como_json: bool) -> int:
@@ -391,7 +429,7 @@ def ahora(cfg: Config, horas: float, como_json: bool) -> int:
             print("  " + linea(s, ev, cfg).replace(f"SISMO nivel={ev['nivel']} | ", f"[{ev['nivel'] or '-'}] "))
     for e in errores:
         print(f"ERROR fuente {e}", file=sys.stderr)
-    return 2 if {e.split(":", 1)[0] for e in errores} == {"usgs", "emsc"} else 0
+    return 2 if {"usgs", "emsc"} <= {e.split(":", 1)[0] for e in errores} else 0
 
 
 def prueba(cfg: Config) -> None:
@@ -422,9 +460,12 @@ def main(argv=None) -> int:
     ap.add_argument("--json", action="store_true", help="modo ahora: salida JSON")
     ap.add_argument("--rt-url", default=e("SISMOS_RT_URL", ""),
                     help="URL del backend sismo-rt (tiempo real + GlobalQuake). Opcional.")
+    ap.add_argument("--gq-url", default=e("SISMOS_GQ_URL", ""),
+                    help="URL del FDSNWS de GlobalQuake Server, p. ej. http://localhost:8080. Opcional.")
     ap.add_argument("--estado", type=Path, default=Path(e("SISMOS_ESTADO", str(ESTADO_DEF))))
     a = ap.parse_args(argv)
-    cfg = Config(a.lat, a.lon, a.lugar, a.radio_km, a.mag_global, a.mag_min, a.intervalo, a.rt_url, a.estado)
+    cfg = Config(a.lat, a.lon, a.lugar, a.radio_km, a.mag_global, a.mag_min, a.intervalo, a.rt_url, a.estado,
+                 gq_url=a.gq_url)
 
     if a.modo == "ahora":
         return ahora(cfg, a.horas, a.json)
@@ -432,7 +473,12 @@ def main(argv=None) -> int:
         prueba(cfg)
         return 0
     emitir(f"VIGILANDO {cfg.lugar} ({cfg.lat}, {cfg.lon}) | radio {cfg.radio_km:g} km o M≥{cfg.mag_global:g} "
-           f"| M≥{cfg.mag_min:g} | fuente: {'sismo-rt ' + cfg.rt_url + ' (+USGS/EMSC si cae)' if cfg.rt_url else 'USGS+EMSC cada %gs' % cfg.intervalo}")
+           f"| M≥{cfg.mag_min:g} | fuentes: "
+           + " + ".join(x for x in (
+               f"GlobalQuake {cfg.gq_url} cada {cfg.gq_intervalo_s:g}s" if cfg.gq_url else "",
+               f"sismo-rt {cfg.rt_url}" if cfg.rt_url else "",
+               f"USGS+EMSC cada {cfg.intervalo_s:g}s" + (" (si cae sismo-rt)" if cfg.rt_url else ""),
+           ) if x))
     vigilar(cfg, a.max_edad_min)
     return 0
 

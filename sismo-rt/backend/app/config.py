@@ -40,6 +40,9 @@ class Config:
     emsc_rest_url: str = "https://www.seismicportal.eu/fdsnws/event/1/query"
     emsc_rest_intervalo_s: float = 30.0
     emsc_fallback_tras_s: float = 20.0
+    # FDSNWS-event de GlobalQuake Server 0.11 (p. ej. http://localhost:8080). Vacío = no se usa.
+    globalquake_url: str = ""
+    globalquake_intervalo_s: float = 5.0
 
     # Filtro por defecto: notificar si está a <= radio_km O si la magnitud es >= mag_global.
     radio_km: float = 500.0
@@ -90,6 +93,8 @@ class Config:
             emsc_rest_url=e("EMSC_REST_URL", d.emsc_rest_url),
             emsc_rest_intervalo_s=f("EMSC_REST_INTERVALO_S", d.emsc_rest_intervalo_s),
             emsc_fallback_tras_s=f("EMSC_FALLBACK_TRAS_S", d.emsc_fallback_tras_s),
+            globalquake_url=e("GLOBALQUAKE_URL", "").rstrip("/"),
+            globalquake_intervalo_s=f("GLOBALQUAKE_INTERVALO_S", d.globalquake_intervalo_s),
             radio_km=f("RADIO_KM", d.radio_km),
             mag_global=f("MAG_GLOBAL", d.mag_global),
             mag_alerta=f("MAG_ALERTA", d.mag_alerta),

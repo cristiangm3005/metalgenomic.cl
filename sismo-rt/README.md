@@ -1,7 +1,7 @@
 # Sismo RT — alertas sísmicas personales en tiempo real
 
-Backend en **Python + FastAPI** que recibe sismos en tiempo real (WebSocket de EMSC, detecciones
-de GlobalQuake vía hook) con respaldo de USGS y EMSC REST, fusiona los reportes y los reparte por
+Backend en **Python + FastAPI** que recibe sismos en tiempo real (WebSocket de EMSC y detecciones
+de GlobalQuake Server vía su API FDSNWS o un hook) con respaldo de USGS y EMSC REST, fusiona los reportes y los reparte por
 **WebSocket** o **SSE** a cada cliente con cálculos personalizados para su ubicación:
 
 - distancia (Haversine) y dirección al epicentro,
@@ -33,7 +33,7 @@ sismo-rt/
 │   │   ├── sismologia.py     # Haversine, MMI, PGA, ondas P/S
 │   │   ├── notificadores.py  # push ntfy
 │   │   ├── config.py         # variables de entorno
-│   │   └── fuentes/          # EMSC WebSocket, USGS, EMSC REST + parsers
+│   │   └── fuentes/          # EMSC WebSocket, USGS, EMSC REST, GlobalQuake FDSNWS + parsers
 │   ├── tests/
 │   ├── requirements.txt
 │   └── .env.example

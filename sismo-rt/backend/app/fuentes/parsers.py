@@ -24,8 +24,11 @@ def parse_tiempo(valor) -> datetime:
     return parse_iso(str(valor))
 
 
-def emsc_feature(feature: dict) -> Reporte | None:
-    """Feature GeoJSON de EMSC (igual en el WebSocket y en el servicio FDSN con format=json)."""
+def emsc_feature(feature: dict, fuente: str = "emsc") -> Reporte | None:
+    """Feature GeoJSON de EMSC (igual en el WebSocket y en el servicio FDSN con format=json).
+
+    GlobalQuake Server 0.11 genera exactamente este formato en su FDSNWS (format=geojson).
+    """
     p = feature.get("properties") or {}
     if p.get("mag") is None or p.get("lat") is None or p.get("lon") is None or not p.get("time"):
         return None
@@ -34,7 +37,7 @@ def emsc_feature(feature: dict) -> Reporte | None:
     unid = p.get("unid") or feature.get("id") or ""
     prof = p.get("depth")
     return Reporte(
-        fuente="emsc",
+        fuente=fuente,
         id_fuente=str(unid),
         tiempo=parse_iso(p["time"]),
         lat=float(p["lat"]),
@@ -43,7 +46,7 @@ def emsc_feature(feature: dict) -> Reporte | None:
         mag=float(p["mag"]),
         tipo_mag=p.get("magtype") or "",
         lugar=(p.get("flynn_region") or "").title(),
-        url=f"https://www.seismicportal.eu/eventdetails.html?unid={unid}" if unid else "",
+        url=f"https://www.seismicportal.eu/eventdetails.html?unid={unid}" if unid and fuente == "emsc" else "",
     )
 
 
@@ -54,8 +57,8 @@ def emsc_ws_mensaje(mensaje: dict) -> Reporte | None:
     return emsc_feature(mensaje.get("data") or {})
 
 
-def emsc_coleccion(datos: dict) -> list[Reporte]:
-    return [r for f in datos.get("features", []) if (r := emsc_feature(f)) is not None]
+def emsc_coleccion(datos: dict, fuente: str = "emsc") -> list[Reporte]:
+    return [r for f in datos.get("features", []) if (r := emsc_feature(f, fuente)) is not None]
 
 
 def usgs_coleccion(datos: dict) -> list[Reporte]:
