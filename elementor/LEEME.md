@@ -15,7 +15,7 @@
 
 1. **Importar** ambas plantillas: Elementor → Plantillas → Importar.
 2. **Página de privacidad**: crear una página llamada «Política de privacidad», slug `privacidad`, plantilla *Elementor Canvas*, e insertar la plantilla. La landing ya enlaza a `/privacidad/` desde el formulario, el afiche y el pie.
-3. **RUT**: en los dos widgets HTML busca `Escribe aquí el RUT` y reemplaza el comentario completo `<!-- … -->` por el texto, por ejemplo `RUT 77.123.456-7`. Aparece 2 veces en la landing y 2 en la página de privacidad. Mientras esté vacío, no se muestra nada.
+3. **RUT y razón social**: el RUT 77.958.319-8 ya está incluido. Antes de publicar, cambia la razón social de «Genomic Complexity SpA» a «Genomic Industries SpA» en el Registro de Empresas y Sociedades (ver paso 0 de `PASOS.md`).
 4. **Revisión legal**: la política está redactada según la Ley 19.628 y la Ley 21.719. Pídele a un abogado que la revise antes de publicarla.
 5. **Formulario**: hoy arma un correo a contacto@metalgenomic.cl. Para recibir las solicitudes en un servidor, escribe la URL de tu servicio de formularios en `data-endpoint=""` (está en la etiqueta `<form>`). Acepta servicios que reciben POST y responden 200, como Formspree. Si el envío falla, el formulario vuelve a ofrecer el correo como respaldo.
 6. **Prueba real**: envía una solicitud desde el sitio publicado y confirma que llega.
@@ -30,7 +30,7 @@
 
 ## Pendientes que dependen de ti (no se resuelven en el sitio)
 
-- **RUT** de Genomic Industries SpA (ver paso 3).
+- **Razón social**: hoy la sociedad registrada se llama Genomic Complexity SpA; cambiarla a Genomic Industries SpA (paso 0 de `PASOS.md`).
 - **Equipo**: publicar nombres, cargos y LinkedIn de las personas o asesores reales. Hoy el sitio dice «red de especialistas» y que la propuesta indica quién participa.
 - **Laboratorio de secuenciación**: firmar el acuerdo, documentar el protocolo de toma y envío de muestras y la cadena de custodia. El sitio ya dice que las muestras se secuencian «en un laboratorio especializado» y que la propiedad de los resultados queda por escrito.
 - **Carpeta de proveedor minero**: certificado de vigencia de la sociedad, carpeta tributaria, seguro de responsabilidad civil, registro en la plataforma de proveedores del cliente y, para entrar a faena, inducción de seguridad y cobertura de accidentes del trabajo. Pregunta al área de abastecimiento de tu primer prospecto qué exige.

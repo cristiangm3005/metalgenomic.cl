@@ -5,6 +5,30 @@ Archivos de esta carpeta: `metalgenomic-landing-elementor-pro-v11.json` (landing
 
 ---
 
+## Antes de empezar · Razón social
+
+El certificado del Registro de Empresas y Sociedades (emitido el 10 de noviembre de 2026) dice:
+
+| Dato | Hoy en el Registro | En el sitio web |
+|---|---|---|
+| Razón social | Genomic Complexity SpA | Genomic Industries SpA |
+| RUT | 77.958.319-8 | 77.958.319-8 |
+| Domicilio | Copiapó, Región de Atacama | Copiapó, Región de Atacama |
+
+El sitio y la política de privacidad ya dicen «Genomic Industries SpA · RUT 77.958.319-8». El RUT no cambia al modificar el nombre de la sociedad.
+
+### Paso 0 · Cambiar la razón social a Genomic Industries SpA
+1. Entra a **registrodeempresasysociedades.cl** con tu ClaveÚnica.
+2. Elige la sociedad Genomic Complexity SpA y la actuación **Modificación** de estatutos.
+3. Cambia el Artículo Primero (nombre) a «Genomic Industries SpA», y el nombre de fantasía si lo usas.
+4. Firma con tu firma electrónica avanzada o ClaveÚnica, según lo pida el sistema.
+5. Descarga el nuevo **Certificado de Estatuto Actualizado**: te servirá para la carpeta de proveedor (paso 13).
+6. Revisa en **sii.cl** que la sociedad aparezca con el nuevo nombre. Si no aparece, actualiza los datos con el SII.
+
+**Listo cuando:** el nuevo certificado dice «Razón Social: GENOMIC INDUSTRIES SpA». Publica la web (fase 1) recién después de esto, para que el pie y la política de privacidad nombren a una sociedad que ya existe con ese nombre.
+
+---
+
 ## Fase 1 · Publicar la web nueva (≈ 1 hora)
 
 ### Paso 1 · Respaldo
@@ -21,19 +45,15 @@ Archivos de esta carpeta: `metalgenomic-landing-elementor-pro-v11.json` (landing
 
 **Listo cuando:** la portada naranja se ve en el sitio y, al deslizar, aparece la escena 3D.
 
-### Paso 3 · Escribir el RUT
-1. En el editor, haz clic en el widget HTML de la landing.
-2. Busca (Ctrl+F dentro del código) `Escribe aquí el RUT`. Aparece **2 veces**.
-3. Reemplaza el comentario completo `<!-- Escribe aquí el RUT … -->` por, por ejemplo, `RUT 77.123.456-7`.
-4. Actualiza.
+### Paso 3 · Revisar el RUT
+El RUT 77.958.319-8 ya viene escrito en las plantillas: en el pie, en la portada y en la política de privacidad. Solo revisa que se vea.
 
-**Listo cuando:** el pie dice «Metalgenomic es una marca de Genomic Industries SpA · RUT …».
+**Listo cuando:** el pie dice «Metalgenomic es una marca de Genomic Industries SpA · RUT 77.958.319-8».
 
 ### Paso 4 · Página de privacidad
 1. Páginas → Añadir nueva → título «Política de privacidad», **slug `privacidad`**.
 2. Edita con Elementor, plantilla **Elementor Canvas**, inserta «Metalgenomic · Política de privacidad» (importada igual que en el paso 2).
-3. Escribe el RUT en sus **2** lugares (igual que el paso 3).
-4. Envía el texto a un abogado para revisión antes de anunciarla. La Ley 21.719 rige desde el 1 de diciembre de 2026.
+3. Envía el texto a un abogado para revisión antes de anunciarla. La Ley 21.719 rige desde el 1 de diciembre de 2026.
 
 **Listo cuando:** `metalgenomic.cl/privacidad/` abre la política y el enlace del formulario lleva a ella.
 
@@ -133,7 +153,7 @@ Estos pasos no se resuelven en la web, pero el sitio ya está redactado para ref
 
 ### Paso 13 · Carpeta de proveedor minero
 Ten listos, en PDF:
-- Certificado de vigencia de Genomic Industries SpA.
+- Certificado de vigencia y de estatuto actualizado de Genomic Industries SpA (el nuevo, después del paso 0).
 - Carpeta tributaria (SII).
 - Póliza de seguro de responsabilidad civil.
 - Registro en la plataforma de proveedores del cliente (pregunta cuál usa su área de abastecimiento).
@@ -149,9 +169,10 @@ Cuando tengas el aliado geoespacial firmado o el piloto de mantenimiento predict
 
 ## Lista final de verificación
 
+- [ ] Razón social cambiada a Genomic Industries SpA (Registro y SII)
 - [ ] Respaldo hecho
 - [ ] Landing v11 publicada y 3D «activo» con `?mgdebug=1`
-- [ ] RUT visible en el pie y en la privacidad
+- [ ] RUT 77.958.319-8 visible en el pie y en la privacidad
 - [ ] `/privacidad/` publicada y revisada por un abogado
 - [ ] Solicitud de prueba recibida en contacto@metalgenomic.cl
 - [ ] Caché configurada sin «Delay JS» en la página de inicio
