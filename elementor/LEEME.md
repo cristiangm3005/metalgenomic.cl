@@ -1,10 +1,13 @@
-# Metalgenomic · plantillas Elementor (v10)
+# Metalgenomic · plantillas Elementor (v11)
+
+**Guía completa paso a paso: [`PASOS.md`](PASOS.md).**
 
 ## Archivos
 
 | Archivo | Qué es |
 |---|---|
-| `metalgenomic-landing-elementor-pro-v10.json` | Landing completa (portada afiche + escenas 3D). Reemplaza a la v9. |
+| `metalgenomic-landing-elementor-pro-v11.json` | Landing completa con el 3D optimizado. **Usar esta.** |
+| `metalgenomic-landing-elementor-pro-v10.json` | Versión anterior (mismo contenido, sin optimización 3D). Solo como respaldo. |
 | `metalgenomic-privacidad-elementor.json` | Página de política de privacidad. Publicar con el slug `/privacidad/`. |
 | `robots.txt` | Contenido recomendado para robots.txt. |
 
