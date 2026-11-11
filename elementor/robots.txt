@@ -1,0 +1,7 @@
+# robots.txt para metalgenomic.cl
+# Si usas Rank Math o Yoast, pega esto en su editor de robots.txt en vez de subir el archivo.
+User-agent: *
+Disallow: /wp-admin/
+Allow: /wp-admin/admin-ajax.php
+
+Sitemap: https://metalgenomic.cl/sitemap_index.xml
