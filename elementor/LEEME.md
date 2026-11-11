@@ -1,4 +1,4 @@
-# Metalgenomic · plantillas Elementor (v11)
+# Metalgenomic · plantillas Elementor (v12)
 
 **Guía completa paso a paso: [`PASOS.md`](PASOS.md).**
 
@@ -6,7 +6,9 @@
 
 | Archivo | Qué es |
 |---|---|
-| `metalgenomic-landing-elementor-pro-v11.json` | Landing completa con el 3D optimizado. **Usar esta.** |
+| `metalgenomic-landing-elementor-pro-v12.json` | Landing completa: 3D optimizado y formulario que llega a contacto@metalgenomic.cl. **Usar esta.** |
+| `plugin/metalgenomic-formulario.zip` | Plugin de WordPress que recibe el formulario y lo envía a contacto@metalgenomic.cl. |
+| `metalgenomic-landing-elementor-pro-v11.json` | Versión anterior (formulario solo por correo del visitante). |
 | `metalgenomic-landing-elementor-pro-v10.json` | Versión anterior (mismo contenido, sin optimización 3D). Solo como respaldo. |
 | `metalgenomic-privacidad-elementor.json` | Página de política de privacidad. Publicar con el slug `/privacidad/`. |
 | `robots.txt` | Contenido recomendado para robots.txt. |
@@ -17,7 +19,7 @@
 2. **Página de privacidad**: crear una página llamada «Política de privacidad», slug `privacidad`, plantilla *Elementor Canvas*, e insertar la plantilla. La landing ya enlaza a `/privacidad/` desde el formulario, el afiche y el pie.
 3. **RUT y razón social**: el RUT 77.958.319-8 ya está incluido. Antes de publicar, cambia la razón social de «Genomic Complexity SpA» a «Genomic Industries SpA» en el Registro de Empresas y Sociedades (ver paso 0 de `PASOS.md`).
 4. **Revisión legal**: la política está redactada según la Ley 19.628 y la Ley 21.719. Pídele a un abogado que la revise antes de publicarla.
-5. **Formulario**: hoy arma un correo a contacto@metalgenomic.cl. Para recibir las solicitudes en un servidor, escribe la URL de tu servicio de formularios en `data-endpoint=""` (está en la etiqueta `<form>`). Acepta servicios que reciben POST y responden 200, como Formspree. Si el envío falla, el formulario vuelve a ofrecer el correo como respaldo.
+5. **Formulario**: instala y activa `plugin/metalgenomic-formulario.zip` (Plugins → Añadir nuevo → Subir plugin) y FluentSMTP. Las solicitudes llegan a contacto@metalgenomic.cl y quedan copiadas en el menú «Solicitudes».
 6. **Prueba real**: envía una solicitud desde el sitio publicado y confirma que llega.
 
 ## SEO (Rank Math o Yoast)

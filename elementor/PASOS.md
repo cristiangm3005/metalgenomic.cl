@@ -1,7 +1,7 @@
 # Metalgenomic · pasos para aplicar todas las mejoras
 
 Orden recomendado. Cada paso dice qué hacer, dónde y cómo comprobar que quedó bien.
-Archivos de esta carpeta: `metalgenomic-landing-elementor-pro-v11.json` (landing), `metalgenomic-privacidad-elementor.json` (privacidad), `robots.txt`.
+Archivos de esta carpeta: `metalgenomic-landing-elementor-pro-v12.json` (landing), `metalgenomic-privacidad-elementor.json` (privacidad), `metalgenomic-formulario.zip` (plugin del formulario), `robots.txt`.
 
 ---
 
@@ -37,9 +37,9 @@ El sitio y la política de privacidad ya dicen «Genomic Industries SpA · RUT 7
 
 **Listo cuando:** ves el respaldo en la lista de UpdraftPlus.
 
-### Paso 2 · Importar la landing v11
-1. Elementor → Plantillas → **Importar plantillas** → sube `metalgenomic-landing-elementor-pro-v11.json`.
-2. Abre la página de inicio con Elementor, borra el contenido anterior y usa el ícono de carpeta → «Mis plantillas» → inserta «Metalgenomic · Landing 3D (v11)».
+### Paso 2 · Importar la landing v12
+1. Elementor → Plantillas → **Importar plantillas** → sube `metalgenomic-landing-elementor-pro-v12.json`.
+2. Abre la página de inicio con Elementor, borra el contenido anterior y usa el ícono de carpeta → «Mis plantillas» → inserta «Metalgenomic · Landing 3D (v12)».
 3. En Ajustes de la página (engranaje), plantilla: **Elementor Canvas**.
 4. Actualiza.
 
@@ -57,20 +57,28 @@ El RUT 77.958.319-8 ya viene escrito en las plantillas: en el pie, en la portada
 
 **Listo cuando:** `metalgenomic.cl/privacidad/` abre la política y el enlace del formulario lleva a ella.
 
-### Paso 5 · Recepción del formulario
-Hoy el formulario arma un correo en el programa del visitante. Para recibir las solicitudes en un servidor:
-1. Crea una cuenta en **Formspree** (o un servicio similar) con el correo contacto@metalgenomic.cl y crea un formulario. Copia su URL (algo como `https://formspree.io/f/xxxxxx`).
-2. En el widget HTML, busca `data-endpoint=""` y pega la URL entre las comillas.
-3. Actualiza.
-4. Instala **FluentSMTP** para que los correos de WordPress no lleguen a spam.
+### Paso 5 · Recepción del formulario (llega a contacto@metalgenomic.cl)
+El formulario envía cada solicitud a tu propio WordPress, y este la manda a contacto@metalgenomic.cl. Para eso se usa un plugin pequeño hecho para la web, `metalgenomic-formulario.zip`.
+1. En WordPress ve a **Plugins → Añadir nuevo → Subir plugin**, elige `metalgenomic-formulario.zip` y pulsa **Instalar ahora**, luego **Activar**.
+2. Instala y activa **FluentSMTP** (Plugins → Añadir nuevo → busca «FluentSMTP»). En su asistente, elige la conexión del correo de tu hosting (SMTP de cPanel) con la cuenta contacto@metalgenomic.cl. Usa la prueba de envío del plugin para confirmar que funciona.
+3. En el menú de WordPress aparece **Solicitudes**: ahí queda una copia de cada solicitud, aunque el correo falle.
+4. Abre el sitio publicado en modo incógnito, completa el formulario de «Agendar» y envíalo.
 
-**Listo cuando:** envías una solicitud de prueba desde el sitio publicado, ves «Recibimos tu solicitud» y el correo llega a contacto@metalgenomic.cl.
+Qué incluye el plugin:
+- El botón «Responder» de tu correo contesta directo a quien escribió.
+- Un campo invisible que detiene a los robots de spam.
+- Un máximo de 5 envíos cada 10 minutos por visitante.
+- Si el plugin no está activo o el correo falla, el formulario le ofrece al visitante enviar el mensaje desde su propio correo, así no se pierde el contacto.
+
+**Listo cuando:** ves «Recibimos tu solicitud», el correo llega a contacto@metalgenomic.cl y la solicitud aparece en **Solicitudes**.
+
+Si usas Wordfence u otro plugin de seguridad, no bloquees la «API REST» para visitantes: el formulario la necesita.
 
 ---
 
 ## Fase 2 · Velocidad y fluidez del 3D (≈ 30 min)
 
-La v11 ya trae estas optimizaciones dentro del código:
+La v12 ya trae estas optimizaciones dentro del código:
 
 | Mejora | Efecto |
 |---|---|
@@ -86,7 +94,7 @@ La v11 ya trae estas optimizaciones dentro del código:
 
 **Medido en pruebas (navegador sin GPU, sirve para comparar, no como valor absoluto):**
 
-| | Antes (v10) | Ahora (v11) |
+| | Antes (v10) | Ahora (v12) |
 |---|---|---|
 | Escena 3D lista, escritorio | 2,2–2,4 s | 1,6–1,8 s |
 | Escena 3D lista, celular | 2,0–2,1 s | 1,2–1,4 s |
@@ -171,10 +179,11 @@ Cuando tengas el aliado geoespacial firmado o el piloto de mantenimiento predict
 
 - [ ] Razón social cambiada a Genomic Industries SpA (Registro y SII)
 - [ ] Respaldo hecho
-- [ ] Landing v11 publicada y 3D «activo» con `?mgdebug=1`
+- [ ] Landing v12 publicada y 3D «activo» con `?mgdebug=1`
 - [ ] RUT 77.958.319-8 visible en el pie y en la privacidad
 - [ ] `/privacidad/` publicada y revisada por un abogado
-- [ ] Solicitud de prueba recibida en contacto@metalgenomic.cl
+- [ ] Plugin del formulario y FluentSMTP activos
+- [ ] Solicitud de prueba recibida en contacto@metalgenomic.cl y visible en «Solicitudes»
 - [ ] Caché configurada sin «Delay JS» en la página de inicio
 - [ ] Título SEO, sitemap y robots.txt activos
 - [ ] Search Console con el sitemap enviado
