@@ -7,7 +7,7 @@ Sigue los pasos en orden. Cada uno dice dónde hacer clic y cómo comprobar que 
 ### Ten a mano estos archivos
 | Archivo | Para qué sirve |
 |---|---|
-| metalgenomic-landing-elementor-pro-v12.json | La página de inicio completa |
+| metalgenomic-landing-elementor-pro-v13.json | La página de inicio completa |
 | metalgenomic-privacidad-elementor.json | La página de política de privacidad |
 | metalgenomic-formulario.zip | El plugin que envía el formulario a contacto@metalgenomic.cl |
 | robots.txt | El texto para el archivo robots.txt |
@@ -89,10 +89,10 @@ El sitio dice «Metalgenomic es una marca de Genomic Industries SpA · RUT 77.95
 ### Paso 8 · Importar las dos plantillas
 1. Ve a **Plantillas → Plantillas guardadas** (en versiones antiguas: **Elementor → Mis plantillas**).
 2. Pulsa **Importar plantillas** (arriba).
-3. Elige `metalgenomic-landing-elementor-pro-v12.json` y pulsa **Importar ahora**.
+3. Elige `metalgenomic-landing-elementor-pro-v13.json` y pulsa **Importar ahora**.
 4. Repite con `metalgenomic-privacidad-elementor.json`.
 
-**Listo cuando:** en la lista ves «Metalgenomic · Landing 3D (v12)» y «Metalgenomic · Política de privacidad».
+**Listo cuando:** en la lista ves «Metalgenomic · Landing 3D (v13)» y «Metalgenomic · Política de privacidad».
 
 ### Paso 9 · Crear la página de privacidad
 1. Ve a **Páginas → Añadir nueva**.
@@ -109,7 +109,7 @@ El sitio dice «Metalgenomic es una marca de Genomic Industries SpA · RUT 77.95
 1. Ve a **Páginas → Añadir nueva**. Título: `Inicio`.
 2. Pulsa **Editar con Elementor**.
 3. Engranaje → **Diseño de página** → **Elementor Canvas**.
-4. Ícono de carpeta → **Mis plantillas** → **Insertar** en «Metalgenomic · Landing 3D (v12)».
+4. Ícono de carpeta → **Mis plantillas** → **Insertar** en «Metalgenomic · Landing 3D (v13)».
 5. Pulsa **Publicar**.
 
 Dentro del editor puede verse distinto o sin 3D: es normal. Revisa siempre con **Vista previa** o en el sitio.
