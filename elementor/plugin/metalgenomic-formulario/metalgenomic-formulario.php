@@ -1,8 +1,8 @@
 <?php
 /**
  * Plugin Name:       Metalgenomic · Formulario de diagnóstico
- * Description:       Recibe las solicitudes del formulario de la landing y las envía a contacto@metalgenomic.cl. Guarda una copia en «Solicitudes» del panel.
- * Version:           1.0.0
+ * Description:       Recibe las solicitudes del formulario de la landing y las envía a contacto@metalgenomic.cl. Guarda una copia en «Solicitudes» del panel, registra el consentimiento y elimina las solicitudes con más de 24 meses (Ley 21.719).
+ * Version:           1.1.0
  * Requires at least: 6.0
  * Requires PHP:      7.4
  * Author:            Genomic Industries SpA
@@ -16,6 +16,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 /** Correo que recibe las solicitudes. */
 const MG_FORM_TO = 'contacto@metalgenomic.cl';
+/** Versión del texto de consentimiento que muestra el formulario (se guarda con cada solicitud). */
+const MG_FORM_CONSENT_V = '2026-11-26 · Ley 21.719';
+/** Plazo de conservación de las solicitudes, en meses (política de privacidad). */
+const MG_FORM_RETENCION_MESES = 24;
 /** Máximo de envíos por IP en 10 minutos (protección contra abuso). */
 const MG_FORM_LIMIT = 5;
 
@@ -127,7 +131,7 @@ function mg_form_handle( WP_REST_Request $req ) {
 		'Teléfono: ' . ( $f['telefono'] ? $f['telefono'] : '—' ),
 		'Correo: ' . $f['correo'],
 		'',
-		'Aceptó la política de privacidad: sí',
+		'Consentimiento: otorgado (texto ' . MG_FORM_CONSENT_V . ')',
 		'Fecha: ' . wp_date( 'd-m-Y H:i' ),
 	);
 	$body = implode( "\n", $lines );
@@ -141,7 +145,7 @@ function mg_form_handle( WP_REST_Request $req ) {
 
 	$sent = wp_mail( MG_FORM_TO, $subject, $body, $headers );
 
-	wp_insert_post(
+	$post_id = wp_insert_post(
 		array(
 			'post_type'    => 'mg_solicitud',
 			'post_status'  => 'private',
@@ -150,9 +154,48 @@ function mg_form_handle( WP_REST_Request $req ) {
 		)
 	);
 
+	if ( $post_id && ! is_wp_error( $post_id ) ) {
+		update_post_meta( $post_id, '_mg_consentimiento', MG_FORM_CONSENT_V );
+	}
+
 	if ( ! $sent ) {
 		// El formulario de la landing ofrece entonces enviar por el programa de correo del visitante.
 		return mg_form_error( 'No se pudo enviar el correo.', 500 );
 	}
 	return new WP_REST_Response( array( 'ok' => true ), 200 );
 }
+
+/**
+ * Conservación limitada (Ley 21.719): una vez al día se eliminan definitivamente
+ * las solicitudes guardadas hace más de MG_FORM_RETENCION_MESES meses.
+ */
+function mg_form_limpieza() {
+	$viejas = get_posts(
+		array(
+			'post_type'      => 'mg_solicitud',
+			'post_status'    => 'any',
+			'posts_per_page' => 200,
+			'fields'         => 'ids',
+			'date_query'     => array( array( 'before' => MG_FORM_RETENCION_MESES . ' months ago' ) ),
+		)
+	);
+	foreach ( $viejas as $id ) {
+		wp_delete_post( $id, true );
+	}
+	return count( $viejas );
+}
+add_action( 'mg_form_limpieza_diaria', 'mg_form_limpieza' );
+add_action(
+	'init',
+	function () {
+		if ( ! wp_next_scheduled( 'mg_form_limpieza_diaria' ) ) {
+			wp_schedule_event( time() + HOUR_IN_SECONDS, 'daily', 'mg_form_limpieza_diaria' );
+		}
+	}
+);
+register_deactivation_hook(
+	__FILE__,
+	function () {
+		wp_clear_scheduled_hook( 'mg_form_limpieza_diaria' );
+	}
+);

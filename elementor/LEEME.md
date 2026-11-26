@@ -1,4 +1,4 @@
-# Metalgenomic · plantillas Elementor (v15)
+# Metalgenomic · plantillas Elementor (v16)
 
 **Guía completa paso a paso: [`PASOS.md`](PASOS.md).**
 
@@ -6,14 +6,15 @@
 
 | Archivo | Qué es |
 |---|---|
-| `metalgenomic-landing-elementor-pro-v15.json` | Landing completa: portada simple (título y dos subtítulos), preguntas frecuentes en tarjetas, planta 3D según los planos y formulario a contacto@metalgenomic.cl. **Usar esta.** |
-| `html/metalgenomic-landing-v15.html` | La misma landing como página HTML completa (se abre en el navegador). |
-| `html/metalgenomic-landing-v15-widget.html` | El código para pegar en un widget HTML de Elementor. |
+| `metalgenomic-landing-elementor-pro-v16.json` | Landing completa: adaptada a la Ley 21.719, predictivo operativo, ficha territorial, servicios en tarjetas y planta 3D según los planos. **Usar esta.** |
+| `html/metalgenomic-landing-v16.html` | La misma landing como página HTML completa (se abre en el navegador). |
+| `html/metalgenomic-landing-v16-widget.html` | El código para pegar en un widget HTML de Elementor. |
+| `metalgenomic-landing-elementor-pro-v15.json` | Versión anterior. |
 | `metalgenomic-landing-elementor-pro-v14.json` | Versión anterior. |
 | `tools/dxf_a_planta.py` | Convierte el DXF «Planta 3D» a los datos de la escena (para regenerar la planta si cambian los planos). |
 | `metalgenomic-landing-elementor-pro-v13.json` | Versión anterior. |
 | `metalgenomic-landing-elementor-pro-v12.json` | Versión anterior. |
-| `plugin/metalgenomic-formulario.zip` | Plugin de WordPress que recibe el formulario y lo envía a contacto@metalgenomic.cl. |
+| `plugin/metalgenomic-formulario.zip` | Plugin de WordPress (v1.1) que recibe el formulario, lo envía a contacto@metalgenomic.cl, registra el consentimiento y elimina las solicitudes con más de 24 meses. |
 | `metalgenomic-landing-elementor-pro-v11.json` | Versión anterior (formulario solo por correo del visitante). |
 | `metalgenomic-landing-elementor-pro-v10.json` | Versión anterior (mismo contenido, sin optimización 3D). Solo como respaldo. |
 | `metalgenomic-privacidad-elementor.json` | Página de política de privacidad. Publicar con el slug `/privacidad/`. |
