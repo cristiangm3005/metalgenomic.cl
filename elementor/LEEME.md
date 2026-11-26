@@ -1,4 +1,4 @@
-# Metalgenomic · plantillas Elementor (v16)
+# Metalgenomic · plantillas Elementor (v17)
 
 **Guía completa paso a paso: [`PASOS.md`](PASOS.md).**
 
@@ -6,9 +6,10 @@
 
 | Archivo | Qué es |
 |---|---|
-| `metalgenomic-landing-elementor-pro-v16.json` | Landing completa: adaptada a la Ley 21.719, predictivo operativo, ficha territorial, servicios en tarjetas y planta 3D según los planos. **Usar esta.** |
-| `html/metalgenomic-landing-v16.html` | La misma landing como página HTML completa (se abre en el navegador). |
-| `html/metalgenomic-landing-v16-widget.html` | El código para pegar en un widget HTML de Elementor. |
+| `metalgenomic-landing-elementor-pro-v17.json` | Landing completa: ficha del yacimiento en la vista satelital, «Lo que se extrae» sobre «Cobre.», Ley 21.719 y planta 3D según los planos. **Usar esta.** |
+| `html/metalgenomic-landing-v17.html` | La misma landing como página HTML completa (se abre en el navegador). |
+| `html/metalgenomic-landing-v17-widget.html` | El código para pegar en un widget HTML de Elementor. |
+| `metalgenomic-landing-elementor-pro-v16.json` | Versión anterior. |
 | `metalgenomic-landing-elementor-pro-v15.json` | Versión anterior. |
 | `metalgenomic-landing-elementor-pro-v14.json` | Versión anterior. |
 | `tools/dxf_a_planta.py` | Convierte el DXF «Planta 3D» a los datos de la escena (para regenerar la planta si cambian los planos). |
