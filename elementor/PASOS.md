@@ -1,7 +1,7 @@
 # Metalgenomic · pasos para aplicar todas las mejoras
 
 Orden recomendado. Cada paso dice qué hacer, dónde y cómo comprobar que quedó bien.
-Archivos de esta carpeta: `metalgenomic-landing-elementor-pro-v13.json` (landing), `metalgenomic-privacidad-elementor.json` (privacidad), `metalgenomic-formulario.zip` (plugin del formulario), `robots.txt`.
+Archivos de esta carpeta: `metalgenomic-landing-elementor-pro-v14.json` (landing), `metalgenomic-privacidad-elementor.json` (privacidad), `metalgenomic-formulario.zip` (plugin del formulario), `robots.txt`.
 
 ---
 
@@ -37,9 +37,9 @@ El sitio y la política de privacidad ya dicen «Genomic Industries SpA · RUT 7
 
 **Listo cuando:** ves el respaldo en la lista de UpdraftPlus.
 
-### Paso 2 · Importar la landing v13
-1. Elementor → Plantillas → **Importar plantillas** → sube `metalgenomic-landing-elementor-pro-v13.json`.
-2. Abre la página de inicio con Elementor, borra el contenido anterior y usa el ícono de carpeta → «Mis plantillas» → inserta «Metalgenomic · Landing 3D (v13)».
+### Paso 2 · Importar la landing v14
+1. Elementor → Plantillas → **Importar plantillas** → sube `metalgenomic-landing-elementor-pro-v14.json`.
+2. Abre la página de inicio con Elementor, borra el contenido anterior y usa el ícono de carpeta → «Mis plantillas» → inserta «Metalgenomic · Landing 3D (v14)».
 3. En Ajustes de la página (engranaje), plantilla: **Elementor Canvas**.
 4. Actualiza.
 
@@ -179,7 +179,7 @@ Cuando tengas el aliado geoespacial firmado o el piloto de mantenimiento predict
 
 - [ ] Razón social cambiada a Genomic Industries SpA (Registro y SII)
 - [ ] Respaldo hecho
-- [ ] Landing v13 publicada y 3D «activo» con `?mgdebug=1`
+- [ ] Landing v14 publicada y 3D «activo» con `?mgdebug=1`
 - [ ] RUT 77.958.319-8 visible en el pie y en la privacidad
 - [ ] `/privacidad/` publicada y revisada por un abogado
 - [ ] Plugin del formulario y FluentSMTP activos

@@ -1,4 +1,4 @@
-# Metalgenomic · plantillas Elementor (v13)
+# Metalgenomic · plantillas Elementor (v14)
 
 **Guía completa paso a paso: [`PASOS.md`](PASOS.md).**
 
@@ -6,7 +6,11 @@
 
 | Archivo | Qué es |
 |---|---|
-| `metalgenomic-landing-elementor-pro-v13.json` | Landing completa: scroll suave de un solo reloj, 3D sin bloqueos al cargar y formulario que llega a contacto@metalgenomic.cl. **Usar esta.** |
+| `metalgenomic-landing-elementor-pro-v14.json` | Landing completa: planta 3D según los planos (Plano 01 y Plano 03), portada «Metalgenomic», scroll suave y formulario a contacto@metalgenomic.cl. **Usar esta.** |
+| `html/metalgenomic-landing-v14.html` | La misma landing como página HTML completa (se abre en el navegador). |
+| `html/metalgenomic-landing-v14-widget.html` | El código para pegar en un widget HTML de Elementor. |
+| `tools/dxf_a_planta.py` | Convierte el DXF «Planta 3D» a los datos de la escena (para regenerar la planta si cambian los planos). |
+| `metalgenomic-landing-elementor-pro-v13.json` | Versión anterior. |
 | `metalgenomic-landing-elementor-pro-v12.json` | Versión anterior. |
 | `plugin/metalgenomic-formulario.zip` | Plugin de WordPress que recibe el formulario y lo envía a contacto@metalgenomic.cl. |
 | `metalgenomic-landing-elementor-pro-v11.json` | Versión anterior (formulario solo por correo del visitante). |
